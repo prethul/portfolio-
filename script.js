@@ -12,6 +12,24 @@
   window.addEventListener('resize', updateProgress);
   updateProgress();
 
+  /* ---------- Lightweight hero parallax ---------- */
+  var heroVisual = document.querySelector('.hero-visual');
+  var parallaxHero = document.querySelector('.hero-pro');
+  if (heroVisual && parallaxHero && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var parallaxTicking = false;
+    function updateParallax() {
+      var offset = Math.min(window.scrollY * 0.06, 28);
+      heroVisual.style.transform = 'translateY(' + offset + 'px)';
+      parallaxTicking = false;
+    }
+    document.addEventListener('scroll', function () {
+      if (!parallaxTicking) {
+        window.requestAnimationFrame(updateParallax);
+        parallaxTicking = true;
+      }
+    }, { passive: true });
+  }
+
   /* ---------- Theme toggle (in-memory, no storage APIs) ---------- */
   var root = document.documentElement;
   var btn = document.getElementById('theme-toggle');
@@ -190,6 +208,7 @@
       { label: 'Go to Home', tag: 'page', run: function () { location.href = 'index.html'; } },
       { label: 'Go to About', tag: 'page', run: function () { location.href = 'about.html'; } },
       { label: 'Go to Projects', tag: 'page', run: function () { location.href = 'projects.html'; } },
+      { label: 'Go to Resume', tag: 'page', run: function () { location.href = 'resume.html'; } },
       { label: 'Go to Contact', tag: 'page', run: function () { location.href = 'contact.html'; } },
       { label: 'Toggle dark / light theme', tag: 'action', run: function () { if (btn) btn.click(); } },
       { label: 'Open GitHub', tag: 'link', run: function () { window.open('https://github.com/prethul', '_blank', 'noopener'); } },
