@@ -33,8 +33,6 @@
   /* ---------- Theme toggle (in-memory, no storage APIs) ---------- */
   var root = document.documentElement;
   var btn = document.getElementById('theme-toggle');
-  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (prefersDark) root.setAttribute('data-theme', 'dark');
 
   function paintToggle() {
     var isDark = root.getAttribute('data-theme') === 'dark';
@@ -56,7 +54,9 @@
   var here = hereRaw && hereRaw.length ? hereRaw : 'index.html';
   document.querySelectorAll('nav.main-nav a').forEach(function (a) {
     var target = a.getAttribute('href');
-    if (target === here) a.classList.add('active');
+    var targetPage = target ? target.split('#')[0] : '';
+    var targetHash = target && target.indexOf('#') !== -1 ? target.split('#')[1] : '';
+    if (targetPage === here && (!targetHash || targetHash === location.hash.slice(1))) a.classList.add('active');
   });
 
   /* ---------- Scroll reveal ---------- */
@@ -149,7 +149,7 @@
   var boot = document.getElementById('boot-loader');
   if (boot) {
     var alreadyBooted = false;
-    try { alreadyBooted = sessionStorage.getItem('dipto-booted') === '1'; } catch (e) {}
+    try { alreadyBooted = sessionStorage.getItem('prethul-booted') === '1'; } catch (e) {}
 
     if (reduceMotion || alreadyBooted) {
       boot.remove();
@@ -163,7 +163,7 @@
         boot.classList.add('hide');
         setTimeout(function () { boot.remove(); }, 420);
       }, totalDelay);
-      try { sessionStorage.setItem('dipto-booted', '1'); } catch (e) {}
+      try { sessionStorage.setItem('prethul-booted', '1'); } catch (e) {}
     }
   }
 
@@ -213,7 +213,7 @@
       { label: 'Toggle dark / light theme', tag: 'action', run: function () { if (btn) btn.click(); } },
       { label: 'Open GitHub', tag: 'link', run: function () { window.open('https://github.com/prethul', '_blank', 'noopener'); } },
       { label: 'Open LinkedIn', tag: 'link', run: function () { window.open('https://www.linkedin.com/in/dipto-howlader-prethul-603808333/', '_blank', 'noopener'); } },
-      { label: 'Email Dipto', tag: 'link', run: function () { window.location.href = 'mailto:your.email@gmail.com'; } }
+      { label: 'Message Prethul on LinkedIn', tag: 'link', run: function () { window.open('https://www.linkedin.com/in/dipto-howlader-prethul-603808333/', '_blank', 'noopener'); } }
     ];
 
     var activeIndex = 0;
@@ -355,7 +355,7 @@
   if (contactForm) {
     var statusEl = document.getElementById('form-status');
     var submitBtn = contactForm.querySelector('.form-submit');
-    // TODO: replace with your real n8n webhook URL (Production URL, not Test)
+    // Keep the form honest until a real production webhook is configured.
     var WEBHOOK_URL = 'https://YOUR-N8N-INSTANCE/webhook/contact-form';
 
     contactForm.addEventListener('submit', function (e) {
@@ -370,10 +370,24 @@
         return;
       }
 
+      if (!/^\S+@\S+\.\S+$/.test(email)) {
+        statusEl.textContent = 'Please enter a valid email address.';
+        statusEl.className = 'form-status err';
+        return;
+      }
+
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending…';
       statusEl.textContent = '';
       statusEl.className = 'form-status';
+
+      if (WEBHOOK_URL.indexOf('YOUR-N8N-INSTANCE') !== -1) {
+        statusEl.textContent = 'Direct form delivery is not configured yet. Please message me on LinkedIn instead.';
+        statusEl.className = 'form-status err';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+        return;
+      }
 
       fetch(WEBHOOK_URL, {
         method: 'POST',
